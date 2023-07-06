@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, AppState } from 'react-native';
+import { StyleSheet, Text, View, AppState, Image } from 'react-native';
 import { Magnetometer } from 'expo-sensors';
 import * as Notifications from 'expo-notifications';
 
@@ -8,6 +8,7 @@ export default function App() {
   const [subscription, setSubscription] = useState(null);
   const [compassHeading, setCompassHeading] = useState(0);
   const [notificationId, setNotificationId] = useState(null);
+  const [isForeground, setIsForeground] = useState(true); // Track foreground/background state
 
   const calculateCompassHeading = () => {
     const { x, y } = magneticField;
@@ -29,8 +30,14 @@ export default function App() {
       body: `Compass Heading: ${heading}°\nDirection: ${direction}`,
       sound: 'default',
       data: { screen: 'compass' },
+      imageUrl: './assets/UselessCompass.png',
     };
-  
+
+    if (isForeground) {
+      // Show notification only in the background
+      return;
+    }
+
     try {
       if (notificationId) {
         await Notifications.setNotificationHandler({
@@ -40,7 +47,7 @@ export default function App() {
             shouldSetBadge: false,
           }),
         });
-  
+
         await Notifications.scheduleNotificationAsync({
           identifier: notificationId,
           content: notificationContent,
@@ -84,7 +91,10 @@ export default function App() {
   useEffect(() => {
     const handleAppStateChange = (nextAppState) => {
       if (nextAppState === 'background') {
+        setIsForeground(false);
         calculateCompassHeading();
+      } else {
+        setIsForeground(true);
       }
     };
 
@@ -101,6 +111,12 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.iconContainer}>
+        <Image
+          source={require('./assets/UselessCompass.png')}
+          style={styles.icon}
+        />
+      </View>
       <Text>Compass Heading: {compassHeading.toFixed(2)}°</Text>
       <Text>Direction: {getCardinalDirection()}</Text>
     </View>
@@ -109,10 +125,18 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: {
-   flex: 1,
+    flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  iconContainer: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+  },
+  icon: {
+    width: 72,
+    height: 72,
+  },
 });
-
