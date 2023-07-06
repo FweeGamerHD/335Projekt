@@ -8,7 +8,6 @@ export default function App() {
   const [subscription, setSubscription] = useState(null);
   const [compassHeading, setCompassHeading] = useState(0);
   const [notificationId, setNotificationId] = useState(null);
-  const [isForeground, setIsForeground] = useState(true); // Track foreground/background state
 
   const calculateCompassHeading = () => {
     const { x, y } = magneticField;
@@ -30,13 +29,7 @@ export default function App() {
       body: `Compass Heading: ${heading}°\nDirection: ${direction}`,
       sound: 'default',
       data: { screen: 'compass' },
-      imageUrl: './assets/UselessCompass.png',
     };
-
-    if (isForeground) {
-      // Show notification only in the background
-      return;
-    }
 
     try {
       if (notificationId) {
@@ -91,10 +84,7 @@ export default function App() {
   useEffect(() => {
     const handleAppStateChange = (nextAppState) => {
       if (nextAppState === 'background') {
-        setIsForeground(false);
         calculateCompassHeading();
-      } else {
-        setIsForeground(true);
       }
     };
 
@@ -111,7 +101,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.iconContainer}>
+    <View style={styles.iconContainer}>
         <Image
           source={require('./assets/UselessCompass.png')}
           style={styles.icon}
@@ -125,8 +115,8 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
+   flex: 1,
+    backgroundColor: 'grey',
     alignItems: 'center',
     justifyContent: 'center',
   },
